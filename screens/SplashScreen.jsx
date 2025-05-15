@@ -16,6 +16,7 @@ export const SplashScreen = ({ navigation }) => {
         style={styles.splashCard}
         source={require("../assets/logo.jpg")} // ✅ Use Image for static JPG
         resizeMode="contain"
+        backgroundColor=""
       />
       {/* 
       <Text style={styles.title}>News App</Text> */}
@@ -26,7 +27,7 @@ export const SplashScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "white",
     alignItems: "center",
     justifyContent: "center",
   },
