@@ -14,7 +14,7 @@ export const SplashScreen = ({ navigation }) => {
     <View style={styles.container}>
       <Image
         style={styles.splashCard}
-        source={require("../assets/logo.jpg")} // ✅ Use Image for static JPG
+        source={require("../assets/logo.png")} // ✅ Use Image for static JPG
         resizeMode="contain"
         backgroundColor=""
       />

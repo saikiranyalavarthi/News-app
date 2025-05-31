@@ -15,7 +15,10 @@
       "android": {
         "buildType": "apk"
       },
-      "autoIncrement": true
+      "node": "18.16.0",
+      "env": {
+        "EXPO_NO_TYPESCRIPT": "1"
+      }
     }
   },
   "submit": {

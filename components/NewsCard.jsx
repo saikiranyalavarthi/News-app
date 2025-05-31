@@ -1,124 +1,4 @@
-// import React from "react";
-// import {
-//   View,
-//   Text,
-//   Image,
-//   TouchableOpacity,
-//   Linking,
-//   Alert,
-//   StyleSheet,
-// } from "react-native";
-// import Icon from "react-native-vector-icons/FontAwesome";
-
-// export const NewsCard = ({ news }) => {
-//   /* 1️⃣  Choose the best image */
-//   const imageUrl =
-//     news?.images?.[0]?.url || // preferred: Blogger's images array
-//     news?.content?.match(/<img[^>]+src="([^">]+)/)?.[1]; // fallback: first <img>
-
-//   /* 2️⃣  Other post info */
-//   const title = news?.title;
-//   const author = news?.author?.displayName ?? "Unknown";
-//   const date = new Date(news?.published).toDateString();
-//   const description = news?.description || "No description available"; // New description field
-
-//   // Share function
-//   const handleShare = (platform) => {
-//     const url = news?.url; // Assuming each news item has a URL
-//     const encoded = encodeURIComponent(url);
-
-//     let shareURL = "";
-//     switch (platform) {
-//       case "whatsapp":
-//         shareURL = `whatsapp://send?text=${encoded}`;
-//         break;
-//       case "telegram":
-//         shareURL = `https://t.me/share/url?url=${url}&text=${title}`;
-//         break;
-//       case "facebook":
-//         shareURL = `https://www.facebook.com/sharer/sharer.php?u=${encoded}`;
-//         break;
-//       case "instagram":
-//         Alert.alert("Note", "Instagram doesn't support direct link sharing.");
-//         return;
-//       default:
-//         return;
-//     }
-
-//     Linking.openURL(shareURL).catch(() =>
-//       Alert.alert("Error", `Cannot open ${platform}`)
-//     );
-//   };
-
-//   return (
-//     <View style={styles.card}>
-//       {imageUrl && (
-//         <Image
-//           source={{ uri: imageUrl }}
-//           style={styles.cover}
-//           resizeMode="cover"
-//         />
-//       )}
-
-//       <Text style={styles.title}>{title}</Text>
-
-//       <Text style={styles.meta}>
-//         {author} · {date}
-//       </Text>
-
-//       {/* Social Share Icons */}
-//       <View style={styles.socialIcons}>
-//         <TouchableOpacity onPress={() => handleShare("whatsapp")}>
-//           <Icon name="whatsapp" size={24} color="green" />
-//         </TouchableOpacity>
-
-//         <TouchableOpacity onPress={() => handleShare("telegram")}>
-//           <Icon name="telegram" size={24} color="blue" />
-//         </TouchableOpacity>
-
-//         <TouchableOpacity onPress={() => handleShare("instagram")}>
-//           <Icon name="instagram" size={24} color="purple" />
-//         </TouchableOpacity>
-
-//         <TouchableOpacity onPress={() => handleShare("facebook")}>
-//           <Icon name="facebook" size={24} color="#3b5998" />
-//         </TouchableOpacity>
-//       </View>
-//     </View>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   card: {
-//     marginVertical: 10,
-//     marginHorizontal: 16,
-//     backgroundColor: "#fff",
-//     borderRadius: 8,
-//     overflow: "hidden", // so the image corners are rounded too
-//     elevation: 3,
-//   },
-//   cover: {
-//     width: "100%",
-//     height: 180, // give remote images a height
-//   },
-//   title: {
-//     fontSize: 18,
-//     fontWeight: "bold",
-//     padding: 10,
-//   },
-//   meta: {
-//     fontSize: 12,
-//     color: "gray",
-//     paddingHorizontal: 10,
-//     paddingBottom: 10,
-//   },
-//   socialIcons: {
-//     flexDirection: "row",
-//     justifyContent: "space-around",
-//     padding: 10,
-//   },
-// });
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -127,50 +7,57 @@ import {
   Linking,
   Alert,
   StyleSheet,
+  Animated,
+  ActivityIndicator,
 } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
 
 export const NewsCard = ({ news }) => {
-  // 1️⃣ Choose the best image
+  const fallbackImage = "https://via.placeholder.com/300x200.png?text=No+Image";
+
   const imageUrl =
-    news?.images?.[0]?.url || // preferred: Blogger's images array
-    news?.content?.match(/<img[^>]+src="([^">]+)/)?.[1]; // fallback: first <img>
+    news?._embedded?.["wp:featuredmedia"]?.[0]?.source_url ||
+    news?.featured_media_url ||
+    fallbackImage;
 
-  // 2️⃣ Other post info
-  const title = news?.title;
-  const author = news?.author?.displayName ?? "Unknown";
-  const date = new Date(news?.published).toDateString();
+  const title = news?.title?.rendered || "No Title";
+  const excerpt = news?.excerpt?.rendered || "";
+  const link = news?.link || "";
+  const date = news?.date
+    ? new Date(news.date).toLocaleDateString()
+    : "Unknown date";
 
-  // Handling content expansion
-  const [expandedPostIds, setExpandedPostIds] = useState([]);
-  const isExpanded = expandedPostIds.includes(news?.id);
-  const plainText = news?.content.replace(/<[^>]+>/g, ""); // Removing HTML tags
+  const [expanded, setExpanded] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
-  const displayedContent = isExpanded ? plainText : plainText.slice(0, 150); // Truncate content
+  // Use useRef to keep animated value stable across renders
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  const toggleExpand = (id) => {
-    if (expandedPostIds.includes(id)) {
-      setExpandedPostIds(expandedPostIds.filter((postId) => postId !== id));
-    } else {
-      setExpandedPostIds([...expandedPostIds, id]);
-    }
-  };
+  const plainExcerpt = excerpt.replace(/<\/?[^>]+(>|$)/g, "");
+  const displayedExcerpt = expanded ? plainExcerpt : plainExcerpt.slice(0, 150);
 
-  // Share function
+  const toggleExpand = () => setExpanded(!expanded);
+
   const handleShare = (platform) => {
-    const url = news?.url; // Assuming each news item has a URL
-    const encoded = encodeURIComponent(url);
+    const encodedLink = encodeURIComponent(link);
+    const encodedTitle = encodeURIComponent(
+      title.replace(/<\/?[^>]+(>|$)/g, "")
+    );
 
     let shareURL = "";
     switch (platform) {
       case "whatsapp":
-        shareURL = `whatsapp://send?text=${encoded}`;
+        shareURL = `whatsapp://send?text=${encodedTitle}%20${encodedLink}`;
         break;
       case "telegram":
-        shareURL = `https://t.me/share/url?url=${url}&text=${title}`;
+        shareURL = `https://t.me/share/url?url=${encodedLink}&text=${encodedTitle}`;
+        break;
+      case "twitter":
+        shareURL = `https://twitter.com/intent/tweet?url=${encodedLink}&text=${encodedTitle}`;
         break;
       case "facebook":
-        shareURL = `https://www.facebook.com/sharer/sharer.php?u=${encoded}`;
+        shareURL = `https://www.facebook.com/sharer/sharer.php?u=${encodedLink}`;
         break;
       case "instagram":
         Alert.alert("Note", "Instagram doesn't support direct link sharing.");
@@ -184,48 +71,77 @@ export const NewsCard = ({ news }) => {
     );
   };
 
+  const openLink = () => {
+    if (!link) {
+      Alert.alert("No URL", "No link available for this article.");
+      return;
+    }
+    Linking.canOpenURL(link)
+      .then((supported) => {
+        if (supported) Linking.openURL(link);
+        else Alert.alert("Error", "Can't open the link.");
+      })
+      .catch(() => Alert.alert("Error", "An error occurred."));
+  };
+
+  useEffect(() => {
+    if (imageLoaded) {
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [imageLoaded, fadeAnim]);
+
   return (
     <View style={styles.card}>
-      {/* Displaying Image */}
-      {imageUrl && (
-        <Image
-          source={{ uri: imageUrl }}
-          style={styles.cover}
-          resizeMode="cover"
-        />
-      )}
+      <TouchableOpacity onPress={openLink} activeOpacity={0.8}>
+        <View style={styles.imageContainer}>
+          {!imageLoaded && (
+            <View style={[styles.cover, styles.imagePlaceholder]}>
+              <ActivityIndicator size="small" color="#888" />
+            </View>
+          )}
 
-      {/* Title and Metadata */}
-      <Text style={styles.title}>{title}</Text>
-      <Text style={styles.meta}>
-        {author} · {date}
+          <Animated.Image
+            source={{ uri: imageError ? fallbackImage : imageUrl }}
+            style={[styles.cover, { opacity: fadeAnim }]}
+            resizeMode="cover"
+            onLoad={() => setImageLoaded(true)}
+            onError={() => {
+              setImageError(true);
+              setImageLoaded(true); // stop loading spinner
+            }}
+          />
+        </View>
+      </TouchableOpacity>
+
+      <Text style={styles.title} numberOfLines={2}>
+        {title.replace(/<\/?[^>]+(>|$)/g, "")}
       </Text>
+      <Text style={styles.meta}>{date}</Text>
 
-      {/* Content Display */}
-      <TouchableOpacity onPress={() => toggleExpand(news?.id)}>
+      <TouchableOpacity onPress={toggleExpand}>
         <Text style={styles.content}>
-          {displayedContent}
-          {!isExpanded && "... "}
+          {displayedExcerpt}
+          {!expanded && "... "}
           <Text style={styles.readMore}>
-            {isExpanded ? "Read less" : "Read more"}
+            {expanded ? " Read less" : " Read more"}
           </Text>
         </Text>
       </TouchableOpacity>
 
-      {/* Social Share Icons */}
       <View style={styles.socialIcons}>
         <TouchableOpacity onPress={() => handleShare("whatsapp")}>
           <Icon name="whatsapp" size={24} color="green" />
         </TouchableOpacity>
-
         <TouchableOpacity onPress={() => handleShare("telegram")}>
           <Icon name="telegram" size={24} color="blue" />
         </TouchableOpacity>
-
         <TouchableOpacity onPress={() => handleShare("twitter")}>
           <Icon name="twitter" size={24} color="#1DA1F2" />
         </TouchableOpacity>
-
         <TouchableOpacity onPress={() => handleShare("facebook")}>
           <Icon name="facebook" size={24} color="#3b5998" />
         </TouchableOpacity>
@@ -240,28 +156,50 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     backgroundColor: "#fff",
     borderRadius: 8,
-    overflow: "hidden", // so the image corners are rounded too
+    overflow: "hidden",
     elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+  },
+  imageContainer: {
+    width: "100%",
+    height: 180,
+    backgroundColor: "#ddd",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  imagePlaceholder: {
+    backgroundColor: "#eee",
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1,
   },
   cover: {
     width: "100%",
-    height: 180, // give remote images a height
+    height: "100%",
   },
   title: {
     fontSize: 18,
     fontWeight: "bold",
-    padding: 10,
+    paddingHorizontal: 10,
+    paddingTop: 10,
   },
   meta: {
     fontSize: 12,
     color: "gray",
     paddingHorizontal: 10,
-    // paddingBottom: 10,
+    paddingBottom: 5,
   },
   content: {
     fontSize: 14,
     paddingHorizontal: 10,
-    // paddingBottom: 10,
+    paddingBottom: 10,
+    textAlign: "justify",
   },
   readMore: {
     fontSize: 14,

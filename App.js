@@ -1,90 +1,3 @@
-// import { SafeAreaView, StyleSheet, Text, View } from "react-native";
-
-// import { SplashScreen } from "./screens/SplashScreen";
-// import { HomeScreen } from "./screens/HomeScreen";
-// import { NavigationContainer } from "@react-navigation/native";
-// import { createStackNavigator } from "@react-navigation/stack";
-// import { createDrawerNavigator } from "@react-navigation/drawer";
-// import CategoryScreen from "./screens/CategoryScreen";
-
-// export default function App() {
-//   const Stack = createStackNavigator();
-//   const Drawer = createDrawerNavigator();
-
-//   // Stack for Splash Screen and Home Screen
-//   const MainStack = () => (
-//     <Stack.Navigator screenOptions={{ headerShown: false }}>
-//       <Stack.Screen name="News-App" component={SplashScreen} />
-//       <Stack.Screen name="Home" component={DrawerNavigator} />
-//     </Stack.Navigator>
-//   );
-
-//   // Drawer Navigator with different news categories
-//   const DrawerNavigator = () => (
-//     <Drawer.Navigator initialRouteName="Mallela Telugu Tejam">
-//       {/* Home Screen */}
-//       <Drawer.Screen name="Mallela Telugu Tejam" component={HomeScreen} />
-
-//       {/* Category Screens with respective categories */}
-//       <Drawer.Screen
-//         name="AP News"
-//         component={CategoryScreen}
-//         initialParams={{ category: "AP News" }}
-//       />
-//       <Drawer.Screen
-//         name="Bhakthi"
-//         component={CategoryScreen}
-//         initialParams={{ category: "Bhakthi" }}
-//       />
-//       <Drawer.Screen
-//         name="Crime"
-//         component={CategoryScreen}
-//         initialParams={{ category: "Crime" }}
-//       />
-//       <Drawer.Screen
-//         name="Editorial"
-//         component={CategoryScreen}
-//         initialParams={{ category: "Editorial" }}
-//       />
-//       <Drawer.Screen
-//         name="Kapu News"
-//         component={CategoryScreen}
-//         initialParams={{ category: "Kapu News" }}
-//       />
-//       <Drawer.Screen
-//         name="National"
-//         component={CategoryScreen}
-//         initialParams={{ category: "National" }}
-//       />
-//       <Drawer.Screen
-//         name="Telangana News"
-//         component={CategoryScreen}
-//         initialParams={{ category: "Telangana News" }}
-//       />
-//       <Drawer.Screen
-//         name="Videos"
-//         component={CategoryScreen}
-//         initialParams={{ category: "Videos" }}
-//       />
-//     </Drawer.Navigator>
-//   );
-
-//   return (
-//     <NavigationContainer>
-//       <MainStack />
-//     </NavigationContainer>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     backgroundColor: "#eee",
-//     alignItems: "center",
-//     justifyContent: "center",
-//   },
-// });
-
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
@@ -95,13 +8,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { SplashScreen } from "./screens/SplashScreen";
 import { HomeScreen } from "./screens/HomeScreen";
 import CategoryScreen from "./screens/CategoryScreen";
-import DetailsScreen from "./navigation/DetailsScreen.js";
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 const Tab = createBottomTabNavigator();
 
-// 🔻 Bottom Tabs with 3 screens only
 const BottomTabs = () => (
   <Tab.Navigator
     screenOptions={({ route }) => ({
@@ -109,8 +20,9 @@ const BottomTabs = () => (
       tabBarIcon: ({ color, size }) => {
         let iconName = "home";
 
-        if (route.name === "AP News") iconName = "newspaper-outline";
-        else if (route.name === "Telangana News") iconName = "map-outline";
+        if (route.name === "ఆంధ్రప్రదేశ్") iconName = "newspaper-outline";
+        else if (route.name === "తెలంగాణ") iconName = "map-outline";
+        else if (route.name === "జిల్లా వార్తలు") iconName = "list-outline";
 
         return <Ionicons name={iconName} size={size} color={color} />;
       },
@@ -120,51 +32,75 @@ const BottomTabs = () => (
   >
     <Tab.Screen name="Home" component={HomeScreen} />
     <Tab.Screen
-      name="AP News"
+      name="ఆంధ్రప్రదేశ్"
       component={CategoryScreen}
-      initialParams={{ category: "AP News" }}
+      initialParams={{ category: "ఆంధ్రప్రదేశ్" }}
     />
     <Tab.Screen
-      name="Telangana News"
+      name="తెలంగాణ"
       component={CategoryScreen}
-      initialParams={{ category: "Telangana News" }}
+      initialParams={{ category: "తెలంగాణ" }}
+    />
+    <Tab.Screen
+      name="జిల్లా వార్తలు"
+      component={CategoryScreen}
+      initialParams={{ category: "జిల్లా వార్తలు" }}
     />
   </Tab.Navigator>
 );
 
-// 🔻 Drawer includes BottomTabs + other categories
 const DrawerNavigator = () => (
-  <Drawer.Navigator initialRouteName="Mallela Telugu Tejam">
-    <Drawer.Screen name="Mallela Telugu Tejam" component={BottomTabs} />
+  <Drawer.Navigator initialRouteName="Bharathsamachar">
+    <Drawer.Screen name="Bharathsamachar" component={BottomTabs} />
     <Drawer.Screen
-      name="Bhakthi"
+      name="CM View"
       component={CategoryScreen}
-      initialParams={{ category: "Bhakthi" }}
+      initialParams={{ category: "CM View" }}
     />
     <Drawer.Screen
-      name="Crime"
+      name="జాతీయం"
       component={CategoryScreen}
-      initialParams={{ category: "Crime" }}
+      initialParams={{ category: "జాతీయం" }}
     />
     <Drawer.Screen
-      name="Editorial"
+      name="అంతర్జాతీయం"
       component={CategoryScreen}
-      initialParams={{ category: "Editorial" }}
+      initialParams={{ category: "అంతర్జాతీయం" }}
     />
     <Drawer.Screen
-      name="Kapu News"
+      name="సినిమా"
       component={CategoryScreen}
-      initialParams={{ category: "Kapu News" }}
+      initialParams={{ category: "సినిమా" }}
     />
     <Drawer.Screen
-      name="National"
+      name="క్రైమ్"
       component={CategoryScreen}
-      initialParams={{ category: "National" }}
+      initialParams={{ category: "క్రైమ్" }}
     />
     <Drawer.Screen
-      name="Videos"
+      name="పాలిటిక్స్"
       component={CategoryScreen}
-      initialParams={{ category: "Videos" }}
+      initialParams={{ category: "పాలిటిక్స్" }}
+    />
+    <Drawer.Screen
+      name="స్పోర్ట్స్"
+      component={CategoryScreen}
+      initialParams={{ category: "స్పోర్ట్స్" }}
+    />
+    <Drawer.Screen
+      name="స్టడీ / జాబ్స్"
+      component={CategoryScreen}
+      initialParams={{ category: "స్టడీ / జాబ్స్" }}
+    />
+    <Drawer.Screen
+      name="బిజినెస్"
+      component={CategoryScreen}
+      initialParams={{ category: "బిజినెస్" }}
+    />
+    <Drawer.Screen
+      name="లైఫ్ స్టైల్"
+      component={CategoryScreen}
+      initialParams={{ category: "లైఫ్ స్టైల్" }}
     />
   </Drawer.Navigator>
 );
@@ -176,7 +112,6 @@ export default function App() {
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="News-App" component={SplashScreen} />
         <Stack.Screen name="Home" component={DrawerNavigator} />
-        <Stack.Screen name="Details" component={DetailsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
